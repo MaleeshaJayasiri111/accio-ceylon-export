@@ -4,20 +4,12 @@ import {
   Sparkles, CheckCircle2, ShieldAlert
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
-
-<<<<<<< HEAD
 import { INITIAL_REVIEWS } from '../data/initialData';
 
 export default function AdminReviews() {
   const { token } = useAdminAuth();
   const [reviews, setReviews] = useState(INITIAL_REVIEWS);
   const [loading, setLoading] = useState(false);
-=======
-export default function AdminReviews() {
-  const { token } = useAdminAuth();
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [statusFilter, setStatusFilter] = useState('All');
   const [activePhoto, setActivePhoto] = useState(null);
 
@@ -29,26 +21,36 @@ export default function AdminReviews() {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
-<<<<<<< HEAD
       if (res.ok) {
         const data = await res.json();
-        if (data.reviews && data.reviews.length > 0) setReviews(data.reviews);
+        if (data.reviews && data.reviews.length > 0) {
+          setReviews(data.reviews);
+        } else {
+          let filtered = INITIAL_REVIEWS;
+          if (statusFilter !== 'All') {
+            filtered = filtered.filter((r) => r.status === statusFilter);
+          }
+          setReviews(filtered);
+        }
+      } else {
+        let filtered = INITIAL_REVIEWS;
+        if (statusFilter !== 'All') {
+          filtered = filtered.filter((r) => r.status === statusFilter);
+        }
+        setReviews(filtered);
       }
-=======
-      const data = await res.json();
-      if (data.reviews) setReviews(data.reviews);
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
     } catch (err) {
       console.error(err);
+      let filtered = INITIAL_REVIEWS;
+      if (statusFilter !== 'All') {
+        filtered = filtered.filter((r) => r.status === statusFilter);
+      }
+      setReviews(filtered);
     } finally {
       setLoading(false);
     }
   };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   useEffect(() => {
     fetchReviews();
   }, [statusFilter, token]);
@@ -63,9 +65,18 @@ export default function AdminReviews() {
         },
         body: JSON.stringify({ status, is_featured: isFeatured })
       });
-      if (res.ok) fetchReviews();
+      if (res.ok) {
+        fetchReviews();
+      } else {
+        setReviews((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status, is_featured: isFeatured } : r))
+        );
+      }
     } catch (err) {
       console.error(err);
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status, is_featured: isFeatured } : r))
+      );
     }
   };
 
@@ -76,9 +87,14 @@ export default function AdminReviews() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) fetchReviews();
+      if (res.ok) {
+        fetchReviews();
+      } else {
+        setReviews((prev) => prev.filter((r) => r.id !== id));
+      }
     } catch (err) {
       console.error(err);
+      setReviews((prev) => prev.filter((r) => r.id !== id));
     }
   };
 
@@ -148,7 +164,7 @@ export default function AdminReviews() {
                     {r.photo_urls && r.photo_urls.length > 0 ? (
                       <button
                         onClick={() => setActivePhoto(r.photo_urls[0])}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)', fontSize: '0.75rem' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)', fontSize: '0.75rem', cursor: 'pointer' }}
                       >
                         <Image size={14} color="var(--primary)" />
                         <span>View Photo</span>
@@ -172,7 +188,8 @@ export default function AdminReviews() {
                         fontWeight: 600,
                         background: r.is_featured ? 'rgba(217, 119, 6, 0.15)' : 'var(--bg-surface-elevated)',
                         color: r.is_featured ? 'var(--primary)' : 'var(--text-muted)',
-                        border: '1px solid var(--border-subtle)'
+                        border: '1px solid var(--border-subtle)',
+                        cursor: 'pointer'
                       }}
                     >
                       {r.is_featured ? '★ Featured' : 'Not Featured'}
@@ -185,7 +202,7 @@ export default function AdminReviews() {
                           className="btn-secondary btn-sm"
                           onClick={() => handleModerate(r.id, 'approved', r.is_featured)}
                           title="Approve Review"
-                          style={{ color: '#10B981' }}
+                          style={{ color: '#10B981', cursor: 'pointer' }}
                         >
                           <Check size={14} />
                         </button>
@@ -195,12 +212,12 @@ export default function AdminReviews() {
                           className="btn-secondary btn-sm"
                           onClick={() => handleModerate(r.id, 'rejected', false)}
                           title="Reject Review"
-                          style={{ color: '#EF4444' }}
+                          style={{ color: '#EF4444', cursor: 'pointer' }}
                         >
                           <X size={14} />
                         </button>
                       )}
-                      <button className="btn-danger btn-sm" onClick={() => handleDelete(r.id)} title="Delete Review">
+                      <button className="btn-danger btn-sm" onClick={() => handleDelete(r.id)} title="Delete Review" style={{ cursor: 'pointer' }}>
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -218,10 +235,10 @@ export default function AdminReviews() {
           <div onClick={() => setActivePhoto(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)' }} />
 
           <div style={{ position: 'relative', maxWidth: '700px', maxHeight: '85vh', zIndex: 610, borderRadius: 'var(--radius-md)', overflow: 'hidden', background: '#000' }}>
-            <img src={activePhoto} alt="Customer Verification" style={{ width: '100%', height: 'auto', maxHeight: '80vh', objectFit: 'contain', display: 'block' }} />
+            <img src={activePhoto} alt="Customer Verification" style={{ width: '100%', height: 'auto', maxHeight: '80vh', objectFit: 'contain', display: 'block' }} onError={(e) => { e.target.src = '/reviews/review_mango_hand.jpg'; }} />
             <button
               onClick={() => setActivePhoto(null)}
-              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '0.4rem', borderRadius: '50%' }}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '0.4rem', borderRadius: '50%', cursor: 'pointer', border: 'none' }}
             >
               <X size={20} />
             </button>
