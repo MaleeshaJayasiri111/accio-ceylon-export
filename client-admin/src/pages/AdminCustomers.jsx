@@ -3,24 +3,26 @@ import { Users, Search, Mail, Phone, Building, Globe, MessageSquare, ShieldCheck
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useAdminChat } from '../context/AdminChatContext';
 
+import { INITIAL_CUSTOMERS } from '../data/initialData';
+
 export default function AdminCustomers({ setCurrentTab }) {
   const { token } = useAdminAuth();
   const { rooms, setActiveRoomId } = useAdminChat();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState(INITIAL_CUSTOMERS);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetch('/api/auth/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data.users) setUsers(data.users);
+        if (data?.users && data.users.length > 0) setUsers(data.users);
       })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, [token]);
+
 
   const handleOpenCustomerChat = (user) => {
     const matchingRoom = rooms.find((r) => r.customer_id === user.id || r.customer_name === user.full_name);

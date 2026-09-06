@@ -7,26 +7,29 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useChat } from '../context/ChatContext';
 
+import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../data/initialData';
+
 export default function ProductDetailPage({ productSlug, navigate, onOpenReviewModal }) {
   const { formatPrice } = useCurrency();
   const { addToCart } = useCart();
   const { setIsOpen: setChatOpen } = useChat();
 
-  const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const fallbackProd = INITIAL_PRODUCTS.find((p) => p.slug === productSlug || p.id === productSlug) || INITIAL_PRODUCTS[0];
+  const [product, setProduct] = useState(fallbackProd);
+  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [loading, setLoading] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
-  const [selectedPack, setSelectedPack] = useState(null);
-  const [quantityKg, setQuantityKg] = useState(25);
+  const [selectedPack, setSelectedPack] = useState(fallbackProd?.packaging_types?.[0] || null);
+  const [quantityKg, setQuantityKg] = useState(fallbackProd?.moq_kg || 25);
   const [isSampleMode, setIsSampleMode] = useState(false);
 
   useEffect(() => {
     fetch(`/api/products/${productSlug}`)
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data.product) {
+        if (data?.product) {
           setProduct(data.product);
-          setReviews(data.reviews || []);
+          setReviews(data.reviews || INITIAL_REVIEWS);
           if (data.product.packaging_types?.length > 0) {
             setSelectedPack(data.product.packaging_types[0]);
           }
@@ -35,9 +38,9 @@ export default function ProductDetailPage({ productSlug, navigate, onOpenReviewM
           }
         }
       })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, [productSlug]);
+
 
   if (loading) {
     return (

@@ -5,10 +5,12 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
+import { INITIAL_REVIEWS } from '../data/initialData';
+
 export default function AdminReviews() {
   const { token } = useAdminAuth();
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [activePhoto, setActivePhoto] = useState(null);
 
@@ -20,14 +22,17 @@ export default function AdminReviews() {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await res.json();
-      if (data.reviews) setReviews(data.reviews);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.reviews && data.reviews.length > 0) setReviews(data.reviews);
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchReviews();

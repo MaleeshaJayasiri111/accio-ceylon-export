@@ -5,10 +5,12 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
+import { INITIAL_PRODUCTS } from '../data/initialData';
+
 export default function AdminProducts() {
   const { token } = useAdminAuth();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -31,8 +33,10 @@ export default function AdminProducts() {
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
-      const data = await res.json();
-      if (data.products) setProducts(data.products);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.products && data.products.length > 0) setProducts(data.products);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -43,6 +47,7 @@ export default function AdminProducts() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
 
   const handleOpenAdd = () => {
     setEditingProduct(null);

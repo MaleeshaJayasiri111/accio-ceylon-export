@@ -7,27 +7,33 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useChat } from '../context/ChatContext';
 
+import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../data/initialData';
+
 export default function HomePage({ navigate, onOpenReviewModal }) {
   const { formatPrice } = useCurrency();
   const { addToCart } = useCart();
   const { setIsOpen: setChatOpen } = useChat();
 
-  const [products, setProducts] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/products?featured=true').then((r) => r.json()),
-      fetch('/api/reviews?featured=true').then((r) => r.json())
-    ])
-      .then(([prodData, revData]) => {
-        if (prodData.products) setProducts(prodData.products);
-        if (revData.reviews) setReviews(revData.reviews);
+    fetch('/api/products?featured=true')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.products && data.products.length > 0) setProducts(data.products);
       })
-      .catch((err) => console.error('Failed to load homepage data:', err))
-      .finally(() => setLoading(false));
+      .catch(() => {});
+
+    fetch('/api/reviews?featured=true')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.reviews && data.reviews.length > 0) setReviews(data.reviews);
+      })
+      .catch(() => {});
   }, []);
+
 
   return (
     <div>

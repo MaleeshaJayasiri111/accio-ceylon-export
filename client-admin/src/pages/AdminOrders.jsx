@@ -5,10 +5,12 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
+import { INITIAL_ORDERS } from '../data/initialData';
+
 export default function AdminOrders({ selectedOrderId, onClearSelectedOrder }) {
   const { token } = useAdminAuth();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -30,13 +32,15 @@ export default function AdminOrders({ selectedOrderId, onClearSelectedOrder }) {
       const res = await fetch('/api/orders', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await res.json();
-      if (data.orders) {
-        setOrders(data.orders);
-        if (selectedOrderId) {
-          const match = data.orders.find((o) => o.id === selectedOrderId);
-          if (match) {
-            handleOpenDetail(match);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.orders && data.orders.length > 0) {
+          setOrders(data.orders);
+          if (selectedOrderId) {
+            const match = data.orders.find((o) => o.id === selectedOrderId);
+            if (match) {
+              handleOpenDetail(match);
+            }
           }
         }
       }

@@ -3,12 +3,14 @@ import { Search, Filter, Plus, Eye, Check, ShieldCheck, Sparkles } from 'lucide-
 import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 
+import { INITIAL_PRODUCTS } from '../data/initialData';
+
 export default function ProductsPage({ navigate }) {
   const { formatPrice } = useCurrency();
   const { addToCart } = useCart();
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -22,13 +24,40 @@ export default function ProductsPage({ navigate }) {
     if (params.toString()) url += `?${params.toString()}`;
 
     fetch(url)
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data.products) setProducts(data.products);
+        if (data?.products && data.products.length > 0) {
+          setProducts(data.products);
+        } else {
+          // Client-side fallback filtering
+          let filtered = INITIAL_PRODUCTS;
+          if (category !== 'All') {
+            filtered = filtered.filter((p) => p.category === category);
+          }
+          if (searchTerm) {
+            filtered = filtered.filter((p) =>
+              p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              p.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+          }
+          setProducts(filtered);
+        }
       })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        let filtered = INITIAL_PRODUCTS;
+        if (category !== 'All') {
+          filtered = filtered.filter((p) => p.category === category);
+        }
+        if (searchTerm) {
+          filtered = filtered.filter((p) =>
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+        setProducts(filtered);
+      });
   }, [category, searchTerm]);
+
 
   return (
     <div style={{ padding: '3.5rem 0 6rem' }}>
