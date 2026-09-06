@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Star, CheckCircle2, Filter, Upload, Image, Sparkles, Building, Globe } from 'lucide-react';
-
-<<<<<<< HEAD
 import { INITIAL_REVIEWS } from '../data/initialData';
 
 export default function ReviewsPage({ onOpenReviewModal }) {
   const [reviews, setReviews] = useState(INITIAL_REVIEWS);
   const [loading, setLoading] = useState(false);
-=======
-export default function ReviewsPage({ onOpenReviewModal }) {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [countryFilter, setCountryFilter] = useState('All');
   const [ratingFilter, setRatingFilter] = useState(0);
 
@@ -23,7 +16,6 @@ export default function ReviewsPage({ onOpenReviewModal }) {
     if (params.toString()) url += `?${params.toString()}`;
 
     fetch(url)
-<<<<<<< HEAD
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.reviews && data.reviews.length > 0) {
@@ -51,23 +43,11 @@ export default function ReviewsPage({ onOpenReviewModal }) {
       });
   }, [countryFilter, ratingFilter]);
 
-
-=======
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.reviews) setReviews(data.reviews);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, [countryFilter, ratingFilter]);
-
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const countries = ['All', 'United Kingdom', 'Australia', 'Germany', 'United Arab Emirates', 'Ireland'];
 
   return (
     <div style={{ padding: '3.5rem 0 6rem' }}>
       <div className="container">
-        {/* Page Title */}
         <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 3rem' }}>
           <span className="badge badge-green" style={{ marginBottom: '0.5rem' }}>Global Export Verification</span>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '0.75rem' }}>
@@ -78,10 +58,8 @@ export default function ReviewsPage({ onOpenReviewModal }) {
           </p>
         </div>
 
-        {/* Filters Bar */}
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '3rem', padding: '1rem 1.5rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem' }}>
-            {/* Country Tabs */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)' }}>Country:</span>
               {countries.map((c) => (
@@ -103,7 +81,6 @@ export default function ReviewsPage({ onOpenReviewModal }) {
               ))}
             </div>
 
-            {/* Rating Filter */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)' }}>Min Stars:</span>
               {[0, 4, 5].map((stars) => (
@@ -131,7 +108,6 @@ export default function ReviewsPage({ onOpenReviewModal }) {
           </button>
         </div>
 
-        {/* Reviews Showcase Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
             Loading verified reviews...
@@ -155,7 +131,6 @@ export default function ReviewsPage({ onOpenReviewModal }) {
                   flexDirection: 'column'
                 }}
               >
-                {/* Photo showcase if attached */}
                 {r.photo_urls && r.photo_urls.length > 0 && (
                   <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', height: '240px', marginBottom: '1.25rem', border: '1px solid var(--border-subtle)', background: '#000' }}>
                     <img
