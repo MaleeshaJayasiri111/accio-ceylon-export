@@ -5,12 +5,19 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
+<<<<<<< HEAD
 import { INITIAL_REVIEWS } from '../data/initialData';
 
 export default function AdminReviews() {
   const { token } = useAdminAuth();
   const [reviews, setReviews] = useState(INITIAL_REVIEWS);
   const [loading, setLoading] = useState(false);
+=======
+export default function AdminReviews() {
+  const { token } = useAdminAuth();
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [statusFilter, setStatusFilter] = useState('All');
   const [activePhoto, setActivePhoto] = useState(null);
 
@@ -22,10 +29,15 @@ export default function AdminReviews() {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
+<<<<<<< HEAD
       if (res.ok) {
         const data = await res.json();
         if (data.reviews && data.reviews.length > 0) setReviews(data.reviews);
       }
+=======
+      const data = await res.json();
+      if (data.reviews) setReviews(data.reviews);
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
     } catch (err) {
       console.error(err);
     } finally {
@@ -33,7 +45,10 @@ export default function AdminReviews() {
     }
   };
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   useEffect(() => {
     fetchReviews();
   }, [statusFilter, token]);

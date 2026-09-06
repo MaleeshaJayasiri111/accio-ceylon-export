@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Star, CheckCircle2, Filter, Upload, Image, Sparkles, Building, Globe } from 'lucide-react';
 
+<<<<<<< HEAD
 import { INITIAL_REVIEWS } from '../data/initialData';
 
 export default function ReviewsPage({ onOpenReviewModal }) {
   const [reviews, setReviews] = useState(INITIAL_REVIEWS);
   const [loading, setLoading] = useState(false);
+=======
+export default function ReviewsPage({ onOpenReviewModal }) {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [countryFilter, setCountryFilter] = useState('All');
   const [ratingFilter, setRatingFilter] = useState(0);
 
@@ -17,6 +23,7 @@ export default function ReviewsPage({ onOpenReviewModal }) {
     if (params.toString()) url += `?${params.toString()}`;
 
     fetch(url)
+<<<<<<< HEAD
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.reviews && data.reviews.length > 0) {
@@ -45,6 +52,16 @@ export default function ReviewsPage({ onOpenReviewModal }) {
   }, [countryFilter, ratingFilter]);
 
 
+=======
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.reviews) setReviews(data.reviews);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [countryFilter, ratingFilter]);
+
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const countries = ['All', 'United Kingdom', 'Australia', 'Germany', 'United Arab Emirates', 'Ireland'];
 
   return (

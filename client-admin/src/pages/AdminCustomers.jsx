@@ -3,6 +3,7 @@ import { Users, Search, Mail, Phone, Building, Globe, MessageSquare, ShieldCheck
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useAdminChat } from '../context/AdminChatContext';
 
+<<<<<<< HEAD
 import { INITIAL_CUSTOMERS } from '../data/initialData';
 
 export default function AdminCustomers({ setCurrentTab }) {
@@ -10,12 +11,20 @@ export default function AdminCustomers({ setCurrentTab }) {
   const { rooms, setActiveRoomId } = useAdminChat();
   const [users, setUsers] = useState(INITIAL_CUSTOMERS);
   const [loading, setLoading] = useState(false);
+=======
+export default function AdminCustomers({ setCurrentTab }) {
+  const { token } = useAdminAuth();
+  const { rooms, setActiveRoomId } = useAdminChat();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetch('/api/auth/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
+<<<<<<< HEAD
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.users && data.users.length > 0) setUsers(data.users);
@@ -24,6 +33,16 @@ export default function AdminCustomers({ setCurrentTab }) {
   }, [token]);
 
 
+=======
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.users) setUsers(data.users);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+>>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const handleOpenCustomerChat = (user) => {
     const matchingRoom = rooms.find((r) => r.customer_id === user.id || r.customer_name === user.full_name);
     if (matchingRoom) {
