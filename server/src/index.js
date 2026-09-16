@@ -45,6 +45,7 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 app.use('/products', express.static(path.join(__dirname, '../public/products')));
 app.use('/reviews', express.static(path.join(__dirname, '../public/uploads')));
+app.use('/company', express.static(path.join(__dirname, '../public/company')));
 
 // Mount API Routes
 app.use('/api/auth', authRoutes);

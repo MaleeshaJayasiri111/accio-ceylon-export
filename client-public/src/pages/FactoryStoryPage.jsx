@@ -44,9 +44,10 @@ export default function FactoryStoryPage({ navigate }) {
 
           <div className="glass-panel" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)' }}>
             <img
-              src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80"
+              src="/company/factory_facility.jpg"
               alt="Accio Colombo Dehydration Plant"
               style={{ width: '100%', height: '380px', objectFit: 'cover' }}
+              onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80'; }}
             />
           </div>
         </div>

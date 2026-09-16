@@ -32,6 +32,10 @@ export default defineConfig({
       '/public': {
         target: 'http://localhost:5000',
         changeOrigin: true
+      },
+      '/company': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
       }
     }
   }

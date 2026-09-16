@@ -2,23 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Plus, Eye, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
-
-<<<<<<< HEAD
 import { INITIAL_PRODUCTS } from '../data/initialData';
 
-=======
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
 export default function ProductsPage({ navigate }) {
   const { formatPrice } = useCurrency();
   const { addToCart } = useCart();
 
-<<<<<<< HEAD
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [loading, setLoading] = useState(false);
-=======
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [category, setCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -32,7 +23,6 @@ export default function ProductsPage({ navigate }) {
     if (params.toString()) url += `?${params.toString()}`;
 
     fetch(url)
-<<<<<<< HEAD
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.products && data.products.length > 0) {
@@ -64,20 +54,9 @@ export default function ProductsPage({ navigate }) {
           );
         }
         setProducts(filtered);
-      });
-  }, [category, searchTerm]);
-
-
-=======
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.products) setProducts(data.products);
       })
-      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [category, searchTerm]);
-
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   return (
     <div style={{ padding: '3.5rem 0 6rem' }}>
       <div className="container">

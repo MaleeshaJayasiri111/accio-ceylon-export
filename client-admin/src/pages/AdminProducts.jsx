@@ -4,20 +4,12 @@ import {
   Package, Image, ShieldCheck, AlertCircle
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
-
-<<<<<<< HEAD
 import { INITIAL_PRODUCTS } from '../data/initialData';
 
 export default function AdminProducts() {
   const { token } = useAdminAuth();
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [loading, setLoading] = useState(false);
-=======
-export default function AdminProducts() {
-  const { token } = useAdminAuth();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -40,15 +32,10 @@ export default function AdminProducts() {
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
-<<<<<<< HEAD
       if (res.ok) {
         const data = await res.json();
-        if (data.products && data.products.length > 0) setProducts(data.products);
+        if (data?.products && data.products.length > 0) setProducts(data.products);
       }
-=======
-      const data = await res.json();
-      if (data.products) setProducts(data.products);
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
     } catch (err) {
       console.error(err);
     } finally {
@@ -59,11 +46,6 @@ export default function AdminProducts() {
   useEffect(() => {
     fetchProducts();
   }, []);
-
-<<<<<<< HEAD
-
-=======
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setName('');

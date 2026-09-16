@@ -6,58 +6,29 @@ import {
 import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useChat } from '../context/ChatContext';
-
-<<<<<<< HEAD
 import { INITIAL_PRODUCTS, INITIAL_REVIEWS } from '../data/initialData';
 
-=======
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
 export default function HomePage({ navigate, onOpenReviewModal }) {
   const { formatPrice } = useCurrency();
   const { addToCart } = useCart();
   const { setIsOpen: setChatOpen } = useChat();
 
-<<<<<<< HEAD
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
   const [reviews, setReviews] = useState(INITIAL_REVIEWS);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/products?featured=true')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.products && data.products.length > 0) setProducts(data.products);
-      })
-      .catch(() => {});
-
-    fetch('/api/reviews?featured=true')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.reviews && data.reviews.length > 0) setReviews(data.reviews);
-      })
-      .catch(() => {});
-  }, []);
-
-
-=======
-  const [products, setProducts] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
     Promise.all([
-      fetch('/api/products?featured=true').then((r) => r.json()),
-      fetch('/api/reviews?featured=true').then((r) => r.json())
+      fetch('/api/products?featured=true').then((r) => (r.ok ? r.json() : null)),
+      fetch('/api/reviews?featured=true').then((r) => (r.ok ? r.json() : null))
     ])
       .then(([prodData, revData]) => {
-        if (prodData.products) setProducts(prodData.products);
-        if (revData.reviews) setReviews(revData.reviews);
+        if (prodData?.products && prodData.products.length > 0) setProducts(prodData.products);
+        if (revData?.reviews && revData.reviews.length > 0) setReviews(revData.reviews);
       })
       .catch((err) => console.error('Failed to load homepage data:', err))
       .finally(() => setLoading(false));
   }, []);
-
->>>>>>> ff90a80f041398752d8f7f52464d7c1c3b3736e0
   return (
     <div>
       {/* 1. HERO SECTION */}
