@@ -88,7 +88,7 @@ export default function AdminSidebar({ currentTab, setCurrentTab }) {
       {/* Public Site Quick Link */}
       <div style={{ padding: '0.75rem 1rem' }}>
         <a
-          href="http://localhost:3000"
+          href={typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://accio-ceylon.vercel.app'}
           target="_blank"
           rel="noreferrer"
           style={{

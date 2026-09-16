@@ -85,7 +85,7 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
           </div>
 
           {/* Desktop Nav links */}
-          <nav className="nav-links" style={{ display: 'none', '@media (min-width: 900px)': { display: 'flex' } }}>
+          <nav className="nav-links">
             {navItems.map((item) => (
               <button
                 key={item.path}
