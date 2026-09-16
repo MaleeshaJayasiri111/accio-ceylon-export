@@ -4,8 +4,8 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLoginPage() {
   const { login } = useAdminAuth();
-  const [email, setEmail] = useState('admin@accio-ceylon.com');
-  const [password, setPassword] = useState('Admin@Accio2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,11 +21,6 @@ export default function AdminLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickDemo = () => {
-    setEmail('admin@accio-ceylon.com');
-    setPassword('Admin@Accio2026');
   };
 
   return (
@@ -51,18 +46,6 @@ export default function AdminLoginPage() {
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
             Colombo Export Operations & Real-Time Live Chat Management
           </p>
-        </div>
-
-        {/* Demo Credentials Box */}
-        <div style={{ padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px dashed var(--primary)', marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Sparkles size={12} /> Default Demo Credentials:</span>
-            <button type="button" onClick={handleQuickDemo} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>Auto-Fill</button>
-          </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            <div>Email: <strong>admin@accio-ceylon.com</strong></div>
-            <div>Password: <strong>Admin@Accio2026</strong></div>
-          </div>
         </div>
 
         {error && (
