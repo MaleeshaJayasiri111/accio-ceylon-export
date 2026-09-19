@@ -346,10 +346,10 @@ export default function ProductDetailPage({ productSlug, navigate, onOpenReviewM
                   className="glass-panel"
                   style={{ borderRadius: 'var(--radius-md)', padding: '1.5rem', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column' }}
                 >
-                  {r.photo_urls && r.photo_urls.length > 0 && (
+                  {((r.photo_urls && r.photo_urls.length > 0) || r.media_url) && (
                     <div style={{ height: '180px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: '1rem', border: '1px solid var(--border-subtle)' }}>
                       <img
-                        src={r.photo_urls[0]}
+                        src={(r.photo_urls && r.photo_urls[0]) || r.media_url}
                         alt="Customer packaging inspection"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={(e) => { e.target.src = '/reviews/review_mango_hand.jpg'; }}
@@ -358,7 +358,7 @@ export default function ProductDetailPage({ productSlug, navigate, onOpenReviewM
                   )}
 
                   <div style={{ display: 'flex', gap: '0.2rem', color: '#F59E0B', marginBottom: '0.5rem' }}>
-                    {[...Array(r.rating)].map((_, i) => (
+                    {[...Array(Math.max(1, Math.min(5, Number(r.rating) || 5)))].map((_, i) => (
                       <Star key={i} size={15} fill="#F59E0B" color="#F59E0B" />
                     ))}
                   </div>
@@ -367,8 +367,8 @@ export default function ProductDetailPage({ productSlug, navigate, onOpenReviewM
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '1rem', flex: 1 }}>{r.comment}</p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.8rem' }}>
-                    <strong>{r.author_name}</strong>
-                    <span style={{ color: 'var(--text-muted)' }}>• {r.author_country}</span>
+                    <strong>{r.author_name || r.customer_name || 'Verified Buyer'}</strong>
+                    <span style={{ color: 'var(--text-muted)' }}>• {r.author_country || r.customer_country || 'International'}</span>
                     <span className="badge badge-green" style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>Verified Buyer</span>
                   </div>
                 </div>

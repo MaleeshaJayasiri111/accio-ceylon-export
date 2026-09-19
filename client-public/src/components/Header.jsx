@@ -246,7 +246,7 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
                     style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
                   />
                   <span style={{ maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user.full_name.split(' ')[0]}
+                    {(user.full_name || user.email || 'Buyer').split(' ')[0]}
                   </span>
                   <ChevronDown size={14} />
                 </button>

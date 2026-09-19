@@ -16,7 +16,8 @@ export function CurrencyProvider({ children }) {
   const currentCurrency = CURRENCIES[currency] || CURRENCIES.USD;
 
   const convertPrice = (usdAmount) => {
-    return Number((usdAmount * currentCurrency.rate).toFixed(2));
+    const num = Number(usdAmount) || 0;
+    return Number((num * currentCurrency.rate).toFixed(2));
   };
 
   const formatPrice = (usdAmount) => {

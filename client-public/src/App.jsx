@@ -34,9 +34,9 @@ function AppContent() {
 
   useEffect(() => {
     fetch('/api/products')
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data.products) setProductsList(data.products);
+        if (data?.products) setProductsList(data.products);
       })
       .catch(() => {});
   }, []);

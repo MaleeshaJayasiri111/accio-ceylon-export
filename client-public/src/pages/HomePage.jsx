@@ -397,10 +397,10 @@ export default function HomePage({ navigate, onOpenReviewModal }) {
                 }}
               >
                 {/* Photo showcase if attached */}
-                {r.photo_urls && r.photo_urls.length > 0 && (
+                {((r.photo_urls && r.photo_urls.length > 0) || r.media_url) && (
                   <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', height: '220px', marginBottom: '1.25rem', border: '1px solid var(--border-subtle)' }}>
                     <img
-                      src={r.photo_urls[0]}
+                      src={(r.photo_urls && r.photo_urls[0]) || r.media_url}
                       alt="Customer packaging feedback"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => { e.target.src = '/reviews/review_mango_hand.jpg'; }}
@@ -409,7 +409,7 @@ export default function HomePage({ navigate, onOpenReviewModal }) {
                 )}
 
                 <div style={{ display: 'flex', gap: '0.2rem', color: '#F59E0B', marginBottom: '0.75rem' }}>
-                  {[...Array(r.rating)].map((_, i) => (
+                  {[...Array(Math.max(1, Math.min(5, Number(r.rating) || 5)))].map((_, i) => (
                     <Star key={i} size={17} fill="#F59E0B" color="#F59E0B" />
                   ))}
                 </div>
@@ -424,15 +424,15 @@ export default function HomePage({ navigate, onOpenReviewModal }) {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
                   <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--botanical))', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>
-                    {r.author_name.charAt(0)}
+                    {(r.author_name || r.customer_name || 'Buyer').trim().charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span>{r.author_name}</span>
+                      <span>{r.author_name || r.customer_name || 'Verified Buyer'}</span>
                       <CheckCircle2 size={14} color="#10B981" />
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {r.author_company ? `${r.author_company} • ` : ''}{r.author_country}
+                      {(r.author_company || r.customer_company) ? `${r.author_company || r.customer_company} • ` : ''}{r.author_country || r.customer_country || 'International'}
                     </div>
                   </div>
                 </div>
