@@ -178,22 +178,7 @@ export default function HomePage({ navigate, onOpenReviewModal }) {
         </div>
       </section>
 
-      {/* 2. LIVE COLOMBO PORT LOGISTICS TICKER */}
-      <section style={{ background: 'var(--bg-surface-elevated)', borderY: '1px solid var(--border-subtle)', padding: '1.25rem 0' }}>
-        <div className="container" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)' }}>
-            <Anchor size={18} />
-            <span>PORT OF COLOMBO TRANSIT SCHEDULES:</span>
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <span>🇬🇧 London Gateway: <strong>14-16 Days</strong></span>
-            <span>🇩🇪 Hamburg Port: <strong>16-18 Days</strong></span>
-            <span>🇦🇪 Jebel Ali: <strong>4-5 Days</strong></span>
-            <span>🇦🇺 Port Botany (Sydney): <strong>12-14 Days</strong></span>
-            <span>🇺🇸 Port of LA: <strong>22-24 Days</strong></span>
-          </div>
-        </div>
-      </section>
+
 
       {/* 3. WHY CEYLON DEHYDRATION VS SUN-DRYING MATRIX */}
       <section style={{ padding: '5rem 0' }}>

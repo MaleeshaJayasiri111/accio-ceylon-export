@@ -46,15 +46,15 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden', whiteSpace: 'nowrap' }}>
             <span className="badge badge-amber" style={{ padding: '0.15rem 0.5rem', fontSize: '0.7rem' }}>
-              <Anchor size={12} /> PORT OF COLOMBO LIVE
+              <Sun size={12} /> CEYLON EXPORT ACTIVE
             </span>
             <span style={{ fontSize: '0.78rem', opacity: 0.9 }}>
-              🚢 Next Vessel: <strong>{vesselNotice}</strong> • Sub-48°C Solar Dehydration Active
+              ☀️ Premium Solar Dehydrated Fruits & Spices • Direct Factory Export Worldwide
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
             <span style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem', opacity: 0.9 }}>
-              <ShieldCheck size={13} color="#10B981" /> 100% Pure Ceylon • Direct Farm Sourced
+              <ShieldCheck size={13} color="#10B981" /> 100% Pure Ceylon • Certified Natural & Pure
             </span>
           </div>
         </div>
@@ -94,6 +94,7 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
                 style={{
                   background: 'none',
                   border: 'none',
+                  cursor: 'pointer',
                   fontWeight: currentPath === item.path ? '700' : '500',
                   color: currentPath === item.path ? 'var(--primary)' : 'var(--text-secondary)'
                 }}
@@ -105,70 +106,107 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
 
           {/* Action Bar */}
           <div className="nav-actions">
-            {/* Currency Selector */}
-            <div style={{ position: 'relative' }}>
-              <button
-                className="btn-secondary btn-sm"
-                onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.75rem' }}
-                title="Change Export Currency"
-              >
-                <span>{CURRENCIES[currency]?.flag}</span>
-                <span style={{ fontWeight: 600 }}>{currency}</span>
-                <ChevronDown size={14} />
-              </button>
-
-              {isCurrencyOpen && (
-                <div
-                  className="glass-panel"
-                  style={{
-                    position: 'absolute',
-                    top: '120%',
-                    right: 0,
-                    width: '140px',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '0.35rem',
-                    zIndex: 200,
-                    boxShadow: 'var(--shadow-lg)'
-                  }}
-                >
-                  {Object.values(CURRENCIES).map((c) => (
-                    <button
-                      key={c.code}
-                      onClick={() => {
-                        setCurrency(c.code);
-                        setIsCurrencyOpen(false);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.85rem',
-                        borderRadius: 'var(--radius-sm)',
-                        color: currency === c.code ? 'var(--primary)' : 'var(--text-primary)',
-                        background: currency === c.code ? 'rgba(217, 119, 6, 0.1)' : 'transparent',
-                        fontWeight: currency === c.code ? '700' : '500'
-                      }}
-                    >
-                      <span>{c.flag} {c.code}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{c.symbol}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Theme Toggle */}
-            <button
-              className="btn-secondary btn-sm"
-              onClick={toggleTheme}
-              style={{ width: '38px', height: '38px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Toggle Theme"
+            {/* Utility Pill: Currency Selector + Theme Toggle */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-full)',
+                padding: '2px 4px',
+                gap: '2px'
+              }}
             >
-              {theme === 'dark' ? <Sun size={17} color="#F59E0B" /> : <Moon size={17} color="#4B5563" />}
-            </button>
+              {/* Currency Selector */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    padding: '0.35rem 0.6rem',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: 'var(--text-primary)'
+                  }}
+                  title="Change Export Currency"
+                >
+                  <span>{CURRENCIES[currency]?.flag}</span>
+                  <span>{currency}</span>
+                  <ChevronDown size={12} />
+                </button>
+
+                {isCurrencyOpen && (
+                  <div
+                    className="glass-panel"
+                    style={{
+                      position: 'absolute',
+                      top: '130%',
+                      right: 0,
+                      width: '140px',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.35rem',
+                      zIndex: 200,
+                      boxShadow: 'var(--shadow-lg)'
+                    }}
+                  >
+                    {Object.values(CURRENCIES).map((c) => (
+                      <button
+                        key={c.code}
+                        onClick={() => {
+                          setCurrency(c.code);
+                          setIsCurrencyOpen(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.85rem',
+                          borderRadius: 'var(--radius-sm)',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: currency === c.code ? 'var(--primary)' : 'var(--text-primary)',
+                          background: currency === c.code ? 'rgba(217, 119, 6, 0.1)' : 'transparent',
+                          fontWeight: currency === c.code ? '700' : '500'
+                        }}
+                      >
+                        <span>{c.flag} {c.code}</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{c.symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'none',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)'
+                }}
+                title="Toggle Dark / Light Theme"
+              >
+                {theme === 'dark' ? <Sun size={15} color="#F59E0B" /> : <Moon size={15} color="#4B5563" />}
+              </button>
+            </div>
 
             {/* Live Chat Launcher button */}
             <button
@@ -179,24 +217,25 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                border: unreadCount > 0 ? '1px solid var(--primary)' : '1px solid var(--border-subtle)'
+                padding: '0.45rem 0.85rem',
+                borderRadius: 'var(--radius-full)'
               }}
               title="Live Chat with Export Manager"
             >
-              <MessageSquare size={16} color="var(--primary)" />
-              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Live Chat</span>
+              <MessageSquare size={15} color="var(--primary)" />
+              <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Chat</span>
               {unreadCount > 0 && (
                 <span
                   style={{
                     position: 'absolute',
-                    top: '-6px',
-                    right: '-6px',
+                    top: '-4px',
+                    right: '-4px',
                     background: '#EF4444',
                     color: '#fff',
                     borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    fontSize: '0.7rem',
+                    width: '16px',
+                    height: '16px',
+                    fontSize: '0.65rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -212,18 +251,25 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
             <button
               className="btn-primary btn-sm"
               onClick={() => setIsDrawerOpen(true)}
-              style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.45rem' }}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.45rem 0.95rem',
+                borderRadius: 'var(--radius-full)'
+              }}
             >
-              <ShoppingBag size={16} />
-              <span>Quote Cart</span>
+              <ShoppingBag size={15} />
+              <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Quote Cart</span>
               {totalItemsCount > 0 && (
                 <span
                   style={{
                     background: '#064E3B',
                     color: '#fff',
                     borderRadius: '10px',
-                    padding: '0.1rem 0.45rem',
-                    fontSize: '0.75rem',
+                    padding: '0.05rem 0.4rem',
+                    fontSize: '0.7rem',
                     fontWeight: 700
                   }}
                 >
@@ -238,17 +284,23 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
                 <button
                   className="btn-secondary btn-sm"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: 'var(--radius-full)'
+                  }}
                 >
                   <img
                     src={user.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
                     alt={user.full_name}
                     style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
                   />
-                  <span style={{ maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ maxWidth: '85px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.82rem', fontWeight: 600 }}>
                     {(user.full_name || user.email || 'Buyer').split(' ')[0]}
                   </span>
-                  <ChevronDown size={14} />
+                  <ChevronDown size={12} />
                 </button>
 
                 {isUserMenuOpen && (

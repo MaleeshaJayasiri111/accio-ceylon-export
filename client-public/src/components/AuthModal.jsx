@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Building, Globe, Phone, ArrowRight, Sparkles } from 'lucide-react';
+import { X, Lock, Mail, User, Building, Globe, Phone, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthModal({ isOpen, onClose }) {
@@ -12,6 +12,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [country, setCountry] = useState('United Kingdom');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -19,25 +20,32 @@ export default function AuthModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
     setLoading(true);
 
     try {
       if (isRegister) {
-        await register({
+        const user = await register({
           email,
           password,
           full_name: fullName,
-          company_name: companyName,
+          company_name: companyName || 'Individual Buyer',
           country,
           phone,
           role: 'customer'
         });
+        setSuccessMsg(`Welcome, ${user.full_name || 'Buyer'}! Your buyer account is ready.`);
       } else {
-        await login(email, password);
+        const user = await login(email, password);
+        setSuccessMsg(`Welcome back, ${user.full_name || 'Buyer'}!`);
       }
-      onClose();
+
+      setTimeout(() => {
+        setSuccessMsg('');
+        onClose();
+      }, 900);
     } catch (err) {
-      setError(err.message || 'Authentication failed');
+      setError(err.message || 'Authentication failed. Please check your details.');
     } finally {
       setLoading(false);
     }
@@ -45,10 +53,15 @@ export default function AuthModal({ isOpen, onClose }) {
 
   const handleDemoLogin = async (buyerType) => {
     setError('');
+    setSuccessMsg('');
     setLoading(true);
     try {
-      await demoBuyerLogin(buyerType);
-      onClose();
+      const user = await demoBuyerLogin(buyerType);
+      setSuccessMsg(`Signed in as ${user.full_name} (${user.country})`);
+      setTimeout(() => {
+        setSuccessMsg('');
+        onClose();
+      }, 700);
     } catch (err) {
       setError(err.message || 'Demo login failed');
     } finally {
@@ -58,7 +71,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
   const countries = [
     'United Kingdom', 'Germany', 'Australia', 'United Arab Emirates',
-    'United States', 'Japan', 'France', 'Netherlands', 'Singapore', 'Canada', 'Saudi Arabia'
+    'United States', 'Japan', 'France', 'Netherlands', 'Singapore', 'Canada', 'Saudi Arabia', 'Sri Lanka'
   ];
 
   return (
@@ -99,18 +112,18 @@ export default function AuthModal({ isOpen, onClose }) {
               <path d="M12 6 C8 10 7 15 12 18 C17 15 16 10 12 6 Z" fill="#FDFBF7" />
             </svg>
           </div>
-          <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-            {isRegister ? 'Register as Export Buyer' : 'Sign In to Accio Portal'}
+          <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>
+            {isRegister ? 'Register as Buyer (Individual or Company)' : 'Sign In to Accio Portal'}
           </h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
-            Access wholesale FOB price lists, sample tracking & order history
+            Access wholesale & retail FOB quotation, sample tracking & order history
           </p>
         </div>
 
         {/* Quick Demo Buyer Buttons */}
         <div style={{ marginBottom: '1.25rem', padding: '0.85rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-subtle)' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Sparkles size={13} /> Quick Demo Buyer Sign-In:
+            <Sparkles size={13} /> 1-Click Demo Buyer Sign-In:
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
             <button
@@ -132,6 +145,15 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
         </div>
 
+        {/* Success Alert */}
+        {successMsg && (
+          <div style={{ padding: '0.75rem 1rem', borderRadius: 'var(--radius-sm)', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#047857', fontSize: '0.88rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle2 size={18} color="#10B981" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        {/* Error Alert */}
         {error && (
           <div style={{ padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-sm)', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid #EF4444', color: '#DC2626', fontSize: '0.85rem', marginBottom: '1rem' }}>
             {error}
@@ -142,7 +164,7 @@ export default function AuthModal({ isOpen, onClose }) {
           {isRegister && (
             <>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem' }}>Full Name *</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem' }}>Your Name *</label>
                 <div style={{ position: 'relative' }}>
                   <User size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
@@ -150,21 +172,21 @@ export default function AuthModal({ isOpen, onClose }) {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Klaus Meyer"
+                    placeholder="e.g. John Smith or Sarah"
                     style={{ width: '100%', padding: '0.65rem 0.75rem 0.65rem 2.4rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem' }}>Company / Organization</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem' }}>Company / Organization (Optional)</label>
                 <div style={{ position: 'relative' }}>
                   <Building size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="e.g. Hamburg Bio Import GmbH"
+                    placeholder="e.g. Individual Buyer / My Organic Store"
                     style={{ width: '100%', padding: '0.65rem 0.75rem 0.65rem 2.4rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)' }}
                   />
                 </div>
@@ -235,7 +257,7 @@ export default function AuthModal({ isOpen, onClose }) {
               Already have an account?{' '}
               <button
                 type="button"
-                onClick={() => setIsRegister(false)}
+                onClick={() => { setIsRegister(false); setError(''); setSuccessMsg(''); }}
                 style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}
               >
                 Sign In
@@ -243,13 +265,13 @@ export default function AuthModal({ isOpen, onClose }) {
             </span>
           ) : (
             <span>
-              New international importer?{' '}
+              New buyer or importer?{' '}
               <button
                 type="button"
-                onClick={() => setIsRegister(true)}
+                onClick={() => { setIsRegister(true); setError(''); setSuccessMsg(''); }}
                 style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}
               >
-                Register Here
+                Register Free Here
               </button>
             </span>
           )}
