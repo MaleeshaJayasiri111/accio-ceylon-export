@@ -71,7 +71,7 @@ function AppContent() {
     pageComponent = <ProductDetailPage productSlug={slug} navigate={navigate} onOpenReviewModal={() => setIsReviewModalOpen(true)} />;
   } else if (currentPath === '/reviews') {
     pageComponent = <ReviewsPage onOpenReviewModal={() => setIsReviewModalOpen(true)} />;
-  } else if (currentPath === '/factory-story') {
+  } else if (currentPath === '/factory-story' || currentPath === '/about' || currentPath === '/about-us') {
     pageComponent = <FactoryStoryPage navigate={navigate} />;
   } else if (currentPath === '/port-export') {
     pageComponent = <PortExportPage navigate={navigate} />;

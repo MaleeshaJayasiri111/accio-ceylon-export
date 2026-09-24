@@ -308,26 +308,56 @@ export default function AdminChatCenter() {
         </h4>
 
         {activeRoom ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', fontSize: '0.85rem' }}>
-            <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Name & Title:</span>
-              <strong>{activeRoom.customer_name}</strong>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--botanical))', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                {activeRoom.customer_name?.charAt(0) || 'B'}
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>{activeRoom.customer_name}</div>
+                <span className={`badge ${activeRoom.customer_id ? 'badge-green' : 'badge-amber'}`} style={{ fontSize: '0.68rem', padding: '0.15rem 0.45rem' }}>
+                  {activeRoom.customer_id ? 'Verified Registered Buyer' : 'Guest Inquirer'}
+                </span>
+              </div>
             </div>
 
-            <div>
+            <div style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Destination Country:</span>
+              <strong style={{ color: '#047857', fontSize: '0.92rem' }}>{activeRoom.user_country || activeRoom.customer_country || 'International'}</strong>
+            </div>
+
+            <div style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Company / Brand:</span>
-              <strong>{activeRoom.customer_company || 'Private Buyer / Not Specified'}</strong>
+              <strong>{activeRoom.user_company_name || activeRoom.customer_company || 'Individual Buyer / Not Specified'}</strong>
             </div>
 
-            <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Destination Market:</span>
-              <strong style={{ color: '#047857' }}>{activeRoom.customer_country}</strong>
-            </div>
+            {activeRoom.user_email && (
+              <div style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Registered Email:</span>
+                <a href={`mailto:${activeRoom.user_email}`} style={{ color: 'var(--primary)', fontWeight: 600, wordBreak: 'break-all' }}>
+                  {activeRoom.user_email}
+                </a>
+              </div>
+            )}
 
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.35rem' }}>Colombo Port Routing:</div>
+            {activeRoom.user_phone && (
+              <div style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Phone / WhatsApp:</span>
+                <strong>{activeRoom.user_phone}</strong>
+              </div>
+            )}
+
+            {activeRoom.user_created_at && (
+              <div style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Registered Since:</span>
+                <span>{new Date(activeRoom.user_created_at).toLocaleDateString()}</span>
+              </div>
+            )}
+
+            <div style={{ padding: '0.85rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: '0.35rem' }}>Colombo Port Logistics:</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                Primary container feeder: <strong>Direct CMB → European / Asian discharge</strong>
+                Direct Colombo Harbor dispatch. Lead time 14-21 days sea freight / 3-5 days air freight.
               </div>
             </div>
           </div>

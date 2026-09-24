@@ -31,24 +31,40 @@ function initChatSocket(io) {
       const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
       try {
+        // If customer, check if user exists in SQLite to use verified name and details
+        let registeredUser = null;
+        if (senderType === 'customer' && senderId) {
+          registeredUser = db.prepare('SELECT id, full_name, email, country, company_name, phone, avatar_url, created_at FROM users WHERE id = ?').get(senderId);
+        }
+
+        const effectiveSenderName = registeredUser ? registeredUser.full_name : (senderName || (senderType === 'admin' ? 'Accio Admin' : 'Export Buyer'));
+
         // Ensure room exists in SQLite before inserting message
         const existingRoom = db.prepare('SELECT id FROM chat_rooms WHERE id = ?').get(roomId);
         if (!existingRoom) {
           db.prepare(`
             INSERT INTO chat_rooms (
-              id, customer_name, customer_country, customer_company, last_message, last_message_at,
+              id, customer_id, customer_name, customer_country, customer_company, last_message, last_message_at,
               unread_admin_count, unread_customer_count, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 1, 0, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)
           `).run(
             roomId,
-            senderName || (senderType === 'customer' ? 'Export Buyer' : 'Accio Colombo Admin'),
-            'International',
-            '',
+            registeredUser ? registeredUser.id : (senderType === 'customer' ? senderId : null),
+            effectiveSenderName,
+            registeredUser ? registeredUser.country : 'International',
+            registeredUser ? registeredUser.company_name : '',
             messageText,
             createdAt,
             createdAt,
             createdAt
           );
+        } else if (registeredUser) {
+          // Keep room customer info synced with registered user profile
+          db.prepare(`
+            UPDATE chat_rooms
+            SET customer_id = ?, customer_name = ?, customer_country = ?, customer_company = ?
+            WHERE id = ?
+          `).run(registeredUser.id, registeredUser.full_name, registeredUser.country, registeredUser.company_name, roomId);
         }
 
         // Save to SQLite
@@ -60,7 +76,7 @@ function initChatSocket(io) {
           roomId,
           senderType,
           senderId || null,
-          senderName || (senderType === 'admin' ? 'Accio Admin' : 'Customer'),
+          effectiveSenderName,
           messageText,
           JSON.stringify(attachments),
           createdAt
@@ -86,18 +102,34 @@ function initChatSocket(io) {
           room_id: roomId,
           sender_type: senderType,
           sender_id: senderId,
-          sender_name: senderName,
+          sender_name: effectiveSenderName,
           message_text: messageText,
           attachments,
           is_read: false,
           created_at: createdAt
         };
 
-        // Emit to everyone in the room
+        // Query updated room with joined user details
+        const updatedRoom = db.prepare(`
+          SELECT r.*,
+                 u.avatar_url, u.email as user_email, u.phone as user_phone,
+                 u.country as user_country, u.company_name as user_company_name,
+                 u.full_name as user_full_name, u.created_at as user_created_at
+          FROM chat_rooms r
+          LEFT JOIN users u ON r.customer_id = u.id
+          WHERE r.id = ?
+        `).get(roomId);
+
+        // Emit to everyone in the specific room
         io.to(roomId).emit('receive_message', messagePayload);
 
-        // Notify admin dashboard channel
-        const updatedRoom = db.prepare('SELECT * FROM chat_rooms WHERE id = ?').get(roomId);
+        // Always notify admin dashboard channel in real-time with full message and room details
+        io.to('admin_dashboard_channel').emit('admin_new_message', {
+          room: updatedRoom,
+          message: messagePayload,
+          senderUser: registeredUser
+        });
+
         io.to('admin_dashboard_channel').emit('room_updated', updatedRoom);
       } catch (err) {
         console.error('Error saving socket chat message:', err);

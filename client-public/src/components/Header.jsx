@@ -34,8 +34,8 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
     { label: 'Home', path: '/' },
     { label: 'Products', path: '/products' },
     { label: 'Port & Export', path: '/port-export' },
-    { label: 'Buyer Reviews', path: '/reviews' },
-    { label: 'Factory Story', path: '/factory-story' },
+    { label: 'Reviews', path: '/reviews' },
+    { label: 'About Us', path: '/factory-story' },
     { label: 'Track Order', path: '/track' }
   ];
 

@@ -17,7 +17,9 @@ router.get('/rooms', requireAdmin, (req, res) => {
   try {
     const rooms = db.prepare(`
       SELECT r.*,
-             u.avatar_url, u.email as user_email
+             u.avatar_url, u.email as user_email, u.phone as user_phone,
+             u.country as user_country, u.company_name as user_company_name,
+             u.full_name as user_full_name, u.created_at as user_created_at
       FROM chat_rooms r
       LEFT JOIN users u ON r.customer_id = u.id
       ORDER BY r.updated_at DESC
@@ -36,19 +38,53 @@ router.post('/rooms', optionalToken, (req, res) => {
     const { customer_id, guest_session_id, customer_name, customer_country, customer_company } = req.body;
     const userId = req.user ? req.user.id : customer_id;
 
+    let userRecord = null;
+    if (userId) {
+      userRecord = db.prepare('SELECT id, full_name, email, country, company_name, phone FROM users WHERE id = ?').get(userId);
+    }
+
+    const name = (userRecord && userRecord.full_name) || customer_name || (req.user ? req.user.full_name : 'Export Buyer');
+    const country = (userRecord && userRecord.country) || customer_country || (req.user ? req.user.country : 'International');
+    const company = (userRecord && userRecord.company_name) || customer_company || (req.user ? req.user.company_name : '');
+
     let room = null;
 
     if (userId) {
       room = db.prepare('SELECT * FROM chat_rooms WHERE customer_id = ?').get(userId);
+      // If room was created as guest previously with same guest_session_id
+      if (!room && guest_session_id) {
+        room = db.prepare('SELECT * FROM chat_rooms WHERE guest_session_id = ?').get(guest_session_id);
+      }
     } else if (guest_session_id) {
       room = db.prepare('SELECT * FROM chat_rooms WHERE guest_session_id = ?').get(guest_session_id);
     }
 
-    if (!room) {
+    if (room) {
+      // Update room with latest customer details
+      if (userId) {
+        db.prepare(`
+          UPDATE chat_rooms
+          SET customer_id = ?, customer_name = ?, customer_country = ?, customer_company = ?, updated_at = datetime('now')
+          WHERE id = ?
+        `).run(userId, name, country, company, room.id);
+      } else {
+        db.prepare(`
+          UPDATE chat_rooms
+          SET customer_name = ?, customer_country = ?, customer_company = ?, updated_at = datetime('now')
+          WHERE id = ?
+        `).run(name, country, company, room.id);
+      }
+      room = db.prepare(`
+        SELECT r.*,
+               u.avatar_url, u.email as user_email, u.phone as user_phone,
+               u.country as user_country, u.company_name as user_company_name,
+               u.full_name as user_full_name, u.created_at as user_created_at
+        FROM chat_rooms r
+        LEFT JOIN users u ON r.customer_id = u.id
+        WHERE r.id = ?
+      `).get(room.id);
+    } else {
       const roomId = 'room_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-      const name = customer_name || (req.user ? req.user.full_name : 'Export Buyer');
-      const country = customer_country || (req.user ? req.user.country : 'International');
-      const company = customer_company || (req.user ? req.user.company_name : '');
 
       db.prepare(`
         INSERT INTO chat_rooms (
@@ -71,7 +107,15 @@ router.post('/rooms', optionalToken, (req, res) => {
         'Ayubowan! Welcome to Accio Ceylon Dry Foods Export. An export specialist in Colombo is available live. How can we assist with your shipment, quote, or sample request?'
       );
 
-      room = db.prepare('SELECT * FROM chat_rooms WHERE id = ?').get(roomId);
+      room = db.prepare(`
+        SELECT r.*,
+               u.avatar_url, u.email as user_email, u.phone as user_phone,
+               u.country as user_country, u.company_name as user_company_name,
+               u.full_name as user_full_name, u.created_at as user_created_at
+        FROM chat_rooms r
+        LEFT JOIN users u ON r.customer_id = u.id
+        WHERE r.id = ?
+      `).get(roomId);
     }
 
     res.json({ room });

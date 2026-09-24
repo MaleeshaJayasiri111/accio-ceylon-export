@@ -149,11 +149,26 @@ router.put('/profile', authenticateToken, (req, res) => {
       return res.status(400).json({ error: 'Full name is required' });
     }
 
-    db.prepare(`
-      UPDATE users
-      SET full_name = ?, phone = ?, company_name = ?, country = ?, avatar_url = COALESCE(?, avatar_url)
-      WHERE id = ?
-    `).run(full_name, phone || '', company_name || '', country || 'Sri Lanka', avatar_url || null, req.user.id);
+    // If email is being changed, check if it's already taken by another user
+    if (email) {
+      const cleanEmail = email.trim().toLowerCase();
+      const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(cleanEmail, req.user.id);
+      if (existing) {
+        return res.status(400).json({ error: 'This email address is already in use by another account.' });
+      }
+
+      db.prepare(`
+        UPDATE users
+        SET full_name = ?, email = ?, phone = ?, company_name = ?, country = ?, avatar_url = COALESCE(?, avatar_url)
+        WHERE id = ?
+      `).run(full_name.trim(), cleanEmail, phone || '', company_name || '', country || 'Sri Lanka', avatar_url || null, req.user.id);
+    } else {
+      db.prepare(`
+        UPDATE users
+        SET full_name = ?, phone = ?, company_name = ?, country = ?, avatar_url = COALESCE(?, avatar_url)
+        WHERE id = ?
+      `).run(full_name.trim(), phone || '', company_name || '', country || 'Sri Lanka', avatar_url || null, req.user.id);
+    }
 
     const updated = db.prepare('SELECT id, email, full_name, company_name, country, phone, role, avatar_url, created_at FROM users WHERE id = ?').get(req.user.id);
     

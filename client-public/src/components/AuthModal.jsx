@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Building, Globe, Phone, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, Lock, Mail, User, Building, Globe, Phone, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthModal({ isOpen, onClose }) {
-  const { login, register, demoBuyerLogin } = useAuth();
+  const { login, register } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,24 +46,6 @@ export default function AuthModal({ isOpen, onClose }) {
       }, 900);
     } catch (err) {
       setError(err.message || 'Authentication failed. Please check your details.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (buyerType) => {
-    setError('');
-    setSuccessMsg('');
-    setLoading(true);
-    try {
-      const user = await demoBuyerLogin(buyerType);
-      setSuccessMsg(`Signed in as ${user.full_name} (${user.country})`);
-      setTimeout(() => {
-        setSuccessMsg('');
-        onClose();
-      }, 700);
-    } catch (err) {
-      setError(err.message || 'Demo login failed');
     } finally {
       setLoading(false);
     }
@@ -118,31 +100,6 @@ export default function AuthModal({ isOpen, onClose }) {
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
             Access wholesale & retail FOB quotation, sample tracking & order history
           </p>
-        </div>
-
-        {/* Quick Demo Buyer Buttons */}
-        <div style={{ marginBottom: '1.25rem', padding: '0.85rem', background: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-subtle)' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Sparkles size={13} /> 1-Click Demo Buyer Sign-In:
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            <button
-              type="button"
-              className="btn-secondary btn-sm"
-              onClick={() => handleDemoLogin('oliver')}
-              style={{ fontSize: '0.78rem', justifyContent: 'flex-start', padding: '0.4rem 0.6rem' }}
-            >
-              🇬🇧 Oliver (London)
-            </button>
-            <button
-              type="button"
-              className="btn-secondary btn-sm"
-              onClick={() => handleDemoLogin('sophia')}
-              style={{ fontSize: '0.78rem', justifyContent: 'flex-start', padding: '0.4rem 0.6rem' }}
-            >
-              🇦🇺 Sophia (Sydney)
-            </button>
-          </div>
         </div>
 
         {/* Success Alert */}

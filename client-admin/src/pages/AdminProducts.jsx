@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, Edit, Trash2, Search, Check, X,
-  Package, Image, ShieldCheck, AlertCircle
+  Package, Image as ImageIcon, ShieldCheck, AlertCircle, Upload, Loader2
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { INITIAL_PRODUCTS } from '../data/initialData';
@@ -28,6 +28,9 @@ export default function AdminProducts() {
   const [inStock, setInStock] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [formError, setFormError] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const fileInputRef = useRef(null);
 
   const fetchProducts = async () => {
     try {
@@ -46,6 +49,7 @@ export default function AdminProducts() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setName('');
@@ -68,7 +72,7 @@ export default function AdminProducts() {
     setEditingProduct(p);
     setName(p.name);
     setCategory(p.category);
-    setFobPrice(p.fob_price_usd.toString());
+    setFobPrice(p.fob_price_usd ? p.fob_price_usd.toString() : '10.00');
     setMoqKg(p.moq_kg ? p.moq_kg.toString() : '20');
     setMoistureLevel(p.moisture_level || '< 10%');
     setShelfLife(p.shelf_life || '24 Months');
@@ -76,10 +80,39 @@ export default function AdminProducts() {
     setShortDesc(p.short_desc || '');
     setDescription(p.description || '');
     setImageUrl(p.images?.[0] || '/products/ceylon_mango.jpg');
-    setInStock(p.in_stock);
-    setIsFeatured(p.is_featured);
+    setInStock(Boolean(p.in_stock));
+    setIsFeatured(Boolean(p.is_featured));
     setFormError('');
     setIsModalOpen(true);
+  };
+
+  // Upload product image file from device
+  const handleProductImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setFormError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload product image');
+
+      setImageUrl(data.url);
+    } catch (err) {
+      setFormError(err.message || 'Image upload failed. Please try again.');
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleSave = async (e) => {
@@ -87,16 +120,16 @@ export default function AdminProducts() {
     setFormError('');
 
     const payload = {
-      name,
+      name: name.trim(),
       category,
-      fob_price_usd: parseFloat(fobPrice),
-      moq_kg: parseFloat(moqKg),
+      fob_price_usd: parseFloat(fobPrice) || 0,
+      moq_kg: parseFloat(moqKg) || 1,
       moisture_level: moistureLevel,
       shelf_life: shelfLife,
       origin_region: originRegion,
       short_desc: shortDesc,
       description,
-      images: [imageUrl],
+      images: [imageUrl || '/products/ceylon_mango.jpg'],
       in_stock: inStock,
       is_featured: isFeatured
     };
@@ -134,7 +167,7 @@ export default function AdminProducts() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product SKU from the export catalog?')) return;
+    if (!window.confirm('Are you sure you want to delete this product from the catalog?')) return;
     try {
       const res = await fetch(`/api/products/${id}`, {
         method: 'DELETE',
@@ -162,13 +195,13 @@ export default function AdminProducts() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search export SKUs..."
+            placeholder="Search products by name or category..."
             style={{ width: '100%', padding: '0.55rem 0.85rem 0.55rem 2.4rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
           />
         </div>
 
         <button className="btn btn-primary" onClick={handleOpenAdd}>
-          <Plus size={16} /> Add New Export Product
+          <Plus size={16} /> Add Product
         </button>
       </div>
 
@@ -178,11 +211,11 @@ export default function AdminProducts() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Product SKU & Image</th>
+                <th>Product & Image</th>
                 <th>Category</th>
-                <th>FOB Price ($/kg)</th>
-                <th>MOQ (kg)</th>
-                <th>Moisture Spec</th>
+                <th>Price ($/kg)</th>
+                <th>Min. Order (kg)</th>
+                <th>Moisture</th>
                 <th>Origin</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -196,7 +229,7 @@ export default function AdminProducts() {
                       <img
                         src={p.images?.[0] || '/products/ceylon_mango.jpg'}
                         alt={p.name}
-                        style={{ width: '42px', height: '42px', borderRadius: '6px', objectFit: 'cover' }}
+                        style={{ width: '44px', height: '44px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border-subtle)' }}
                         onError={(e) => { e.target.src = '/products/ceylon_mango.jpg'; }}
                       />
                       <div>
@@ -208,7 +241,7 @@ export default function AdminProducts() {
                   <td>
                     <span className="badge badge-amber">{p.category}</span>
                   </td>
-                  <td style={{ fontWeight: 700, color: 'var(--primary)' }}>${p.fob_price_usd.toFixed(2)}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--primary)' }}>${(p.fob_price_usd || 0).toFixed(2)}</td>
                   <td>{p.moq_kg} kg</td>
                   <td>{p.moisture_level}</td>
                   <td>{p.origin_region}</td>
@@ -219,10 +252,10 @@ export default function AdminProducts() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <button className="btn-secondary btn-sm" onClick={() => handleOpenEdit(p)} title="Edit SKU">
-                        <Edit size={14} />
+                      <button className="btn-secondary btn-sm" onClick={() => handleOpenEdit(p)} title="Edit Product">
+                        <Edit size={14} /> Edit
                       </button>
-                      <button className="btn-danger btn-sm" onClick={() => handleDelete(p.id)} title="Delete SKU">
+                      <button className="btn-danger btn-sm" onClick={() => handleDelete(p.id)} title="Delete Product">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -255,7 +288,7 @@ export default function AdminProducts() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                {editingProduct ? 'Edit Export Product SKU' : 'Add New Export Product'}
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h3>
               <button onClick={() => setIsModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
                 <X size={20} />
@@ -269,6 +302,54 @@ export default function AdminProducts() {
             )}
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Product Image Attachment Section */}
+              <div style={{ padding: '1.25rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.65rem' }}>
+                  Product Image (Attach photo from Laptop / Phone) *
+                </label>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                  <img
+                    src={imageUrl || '/products/ceylon_mango.jpg'}
+                    alt="Product preview"
+                    style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover', border: '2px solid var(--border-subtle)' }}
+                    onError={(e) => { e.target.src = '/products/ceylon_mango.jpg'; }}
+                  />
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleProductImageSelect}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                    
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      style={{ alignSelf: 'flex-start', padding: '0.5rem 1rem' }}
+                    >
+                      {uploadingImage ? (
+                        <>
+                          <Loader2 size={15} className="live-pulse" /> Uploading image...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={15} /> Choose Photo from Device
+                        </>
+                      )}
+                    </button>
+
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Supports JPG, PNG, WebP up to 25MB. Click button above to select photo from your files.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Product Name *</label>
                 <input
@@ -296,7 +377,7 @@ export default function AdminProducts() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>FOB Colombo Price ($/kg) *</label>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Price ($/kg) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -310,7 +391,7 @@ export default function AdminProducts() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>MOQ (kg)</label>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Minimum Order (kg)</label>
                   <input
                     type="number"
                     value={moqKg}
@@ -344,7 +425,7 @@ export default function AdminProducts() {
                   type="text"
                   value={originRegion}
                   onChange={(e) => setOriginRegion(e.target.value)}
-                  placeholder="e.g. Kurunegala Agri-Zone"
+                  placeholder="e.g. Kurunegala Agri-Zone, Sri Lanka"
                   style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)' }}
                 />
               </div>
@@ -361,22 +442,12 @@ export default function AdminProducts() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Detailed Export Description</label>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Product Description</label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Full technical dehydration notes, flavor profile, and quality specs..."
-                  style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.3rem' }}>Image URL</label>
-                <input
-                  type="text"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Full notes, flavor profile, and quality specs..."
                   style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-surface-elevated)', color: 'var(--text-primary)' }}
                 />
               </div>
@@ -397,7 +468,7 @@ export default function AdminProducts() {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingProduct ? 'Update Product SKU' : 'Create Product SKU'}
+                  {editingProduct ? 'Update Product' : 'Create Product'}
                 </button>
               </div>
             </form>

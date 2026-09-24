@@ -22,35 +22,26 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
 });
 
-router.post('/', upload.single('image'), (req, res) => {
+router.post('/', upload.any(), (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file uploaded' });
+    const uploadedFile = (req.files && req.files.length > 0) ? req.files[0] : req.file;
+    if (!uploadedFile) {
+      return res.status(400).json({ error: 'No image or file uploaded' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
-
-    // Also sync copy to client-public and client-admin if exists
-    try {
-      const publicDest = path.join(__dirname, '../../../client-public/public/reviews', req.file.filename);
-      const adminDest = path.join(__dirname, '../../../client-admin/public/reviews', req.file.filename);
-      fs.copyFileSync(req.file.path, publicDest);
-      fs.copyFileSync(req.file.path, adminDest);
-    } catch (copyErr) {
-      // Non-critical fallback
-    }
+    const fileUrl = `/uploads/${uploadedFile.filename}`;
 
     res.json({
       url: fileUrl,
-      filename: req.file.filename,
-      size: req.file.size
+      filename: uploadedFile.filename,
+      size: uploadedFile.size
     });
   } catch (err) {
     console.error('Upload error:', err);
-    res.status(500).json({ error: 'Failed to process upload' });
+    res.status(500).json({ error: 'Failed to process upload: ' + err.message });
   }
 });
 

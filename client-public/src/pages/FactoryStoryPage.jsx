@@ -7,9 +7,9 @@ export default function FactoryStoryPage({ navigate }) {
       <div className="container">
         {/* Header */}
         <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 4rem' }}>
-          <span className="badge badge-amber" style={{ marginBottom: '0.5rem' }}>Behind the Harvest</span>
+          <span className="badge badge-amber" style={{ marginBottom: '0.5rem' }}>About Accio Ceylon</span>
           <h1 style={{ fontSize: '2.6rem', fontWeight: 900, marginBottom: '1rem' }}>
-            Our Colombo Dehydration Facility & Farmer Cooperatives
+            About Us: Colombo Facility & Farmer Cooperatives
           </h1>
           <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
             Bridging pristine Sri Lankan smallholder agriculture with advanced German-engineered low-temperature solar dehydration technology.

@@ -168,9 +168,9 @@ export default function AdminSettings() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to update profile');
-      setProfileMsg({ type: 'success', text: 'Admin profile updated successfully.' });
-      if (data.token) {
-        localStorage.setItem('accio_admin_token', data.token);
+      setProfileMsg({ type: 'success', text: 'Admin profile and credentials updated successfully.' });
+      if (data.user) {
+        updateAdminUser(data.user, data.token);
       }
     } catch (err) {
       setProfileMsg({ type: 'error', text: err.message });

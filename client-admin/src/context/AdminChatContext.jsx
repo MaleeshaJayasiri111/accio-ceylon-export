@@ -16,6 +16,13 @@ export function AdminChatProvider({ children }) {
   const socketRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
+  const [toast, setToast] = useState(null);
+  const activeRoomIdRef = useRef(activeRoomId);
+
+  useEffect(() => {
+    activeRoomIdRef.current = activeRoomId;
+  }, [activeRoomId]);
+
   // Fetch all rooms
   const fetchRooms = async () => {
     if (!token) return;
@@ -26,7 +33,7 @@ export function AdminChatProvider({ children }) {
       const data = await res.json();
       if (data.rooms) {
         setRooms(data.rooms);
-        if (!activeRoomId && data.rooms.length > 0) {
+        if (!activeRoomIdRef.current && data.rooms.length > 0) {
           setActiveRoomId(data.rooms[0].id);
         }
       }
@@ -53,6 +60,46 @@ export function AdminChatProvider({ children }) {
       setIsConnected(false);
     });
 
+    // Listen for real-time incoming messages from any customer across all rooms
+    socket.on('admin_new_message', ({ room, message, senderUser }) => {
+      if (message && message.sender_type === 'customer') {
+        // Play notification chime sound
+        playAdminChime();
+
+        // If message is in currently open active room, append to messages
+        if (activeRoomIdRef.current === message.room_id) {
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === message.id)) return prev;
+            return [...prev, message];
+          });
+        }
+
+        // Show global toast notification in admin dashboard
+        setToast({
+          id: Date.now(),
+          senderName: message.sender_name || (senderUser && senderUser.full_name) || room?.customer_name || 'Buyer',
+          country: (senderUser && senderUser.country) || room?.customer_country || 'International',
+          company: (senderUser && senderUser.company_name) || room?.customer_company || '',
+          messageText: message.message_text,
+          roomId: room?.id || message.room_id,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+      }
+
+      if (room) {
+        setRooms((prev) => {
+          const idx = prev.findIndex((r) => r.id === room.id);
+          if (idx > -1) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], ...room };
+            return updated.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+          } else {
+            return [room, ...prev];
+          }
+        });
+      }
+    });
+
     socket.on('room_updated', (updatedRoom) => {
       setRooms((prev) => {
         const idx = prev.findIndex((r) => r.id === updatedRoom.id);
@@ -67,12 +114,9 @@ export function AdminChatProvider({ children }) {
     });
 
     socket.on('receive_message', (msg) => {
-      if (msg.sender_type === 'customer') {
-        playAdminChime();
-      }
-
       setMessages((prev) => {
         if (prev.length > 0 && prev[0].room_id === msg.room_id) {
+          if (prev.some((m) => m.id === msg.id)) return prev;
           return [...prev, msg];
         }
         return prev;
@@ -80,7 +124,7 @@ export function AdminChatProvider({ children }) {
     });
 
     socket.on('user_typing', ({ roomId, userType, isTyping }) => {
-      if (userType === 'customer' && roomId === activeRoomId) {
+      if (userType === 'customer' && roomId === activeRoomIdRef.current) {
         setIsCustomerTyping(isTyping);
       }
     });
@@ -165,6 +209,8 @@ export function AdminChatProvider({ children }) {
     });
   };
 
+  const closeToast = () => setToast(null);
+
   const totalUnreadChats = rooms.reduce((sum, r) => sum + (r.unread_admin_count || 0), 0);
 
   return (
@@ -177,6 +223,8 @@ export function AdminChatProvider({ children }) {
         isCustomerTyping,
         isConnected,
         totalUnreadChats,
+        toast,
+        closeToast,
         sendAdminMessage,
         handleStartTyping,
         handleStopTyping,

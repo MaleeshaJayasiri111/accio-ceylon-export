@@ -41,14 +41,15 @@ export function AdminAuthProvider({ children }) {
   }, [token]);
 
   const login = async (email, password) => {
+    const cleanEmail = (email || '').trim().toLowerCase();
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: cleanEmail, password })
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         if (data.user?.role !== 'admin') {
           throw new Error('Access denied: You do not have export administrative credentials.');
         }
@@ -58,24 +59,24 @@ export function AdminAuthProvider({ children }) {
         setAdminUser(data.user);
         return data.user;
       }
+      throw new Error(data.error || 'Invalid email or password.');
     } catch (e) {
-      if (e.message && e.message.includes('Access denied')) {
+      if (e.message && !e.message.includes('Failed to fetch') && !e.message.includes('NetworkError')) {
         throw e;
       }
-      console.warn('Backend API unreachable or failed, checking demo credentials...');
-    }
 
-    // Demo / Static Fallback Authentication
-    if (email.trim().toLowerCase() === 'admin@accio-ceylon.com' && password === 'Admin@Accio2026') {
-      const demoToken = 'demo_admin_jwt_token_2026';
-      localStorage.setItem('accio_admin_token', demoToken);
-      localStorage.setItem('accio_admin_user', JSON.stringify(DEFAULT_ADMIN_USER));
-      setToken(demoToken);
-      setAdminUser(DEFAULT_ADMIN_USER);
-      return DEFAULT_ADMIN_USER;
-    }
+      // Offline fallback
+      if (cleanEmail === 'admin@accio-ceylon.com' && password === 'Admin@Accio2026') {
+        const demoToken = 'demo_admin_jwt_token_2026';
+        localStorage.setItem('accio_admin_token', demoToken);
+        localStorage.setItem('accio_admin_user', JSON.stringify(DEFAULT_ADMIN_USER));
+        setToken(demoToken);
+        setAdminUser(DEFAULT_ADMIN_USER);
+        return DEFAULT_ADMIN_USER;
+      }
 
-    throw new Error('Invalid email or password. Use demo credentials (admin@accio-ceylon.com / Admin@Accio2026).');
+      throw new Error(e.message || 'Invalid email or password.');
+    }
   };
 
   const updateAdminUser = (updatedUser, newToken) => {
