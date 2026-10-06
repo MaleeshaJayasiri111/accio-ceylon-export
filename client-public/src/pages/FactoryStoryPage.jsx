@@ -9,17 +9,17 @@ export default function FactoryStoryPage({ navigate }) {
         <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 4rem' }}>
           <span className="badge badge-amber" style={{ marginBottom: '0.5rem' }}>About Accio Ceylon</span>
           <h1 style={{ fontSize: '2.6rem', fontWeight: 900, marginBottom: '1rem' }}>
-            About Us: Colombo Facility & Farmer Cooperatives
+            About Us: Accio Ceylon Dry Foods Export
           </h1>
           <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
-            Bridging pristine Sri Lankan smallholder agriculture with advanced German-engineered low-temperature solar dehydration technology.
+            Bridging pristine Sri Lankan smallholder agriculture with advanced German-engineered low-temperature solar dehydration technology and worldwide port logistics.
           </p>
         </div>
 
-        {/* Section 1: Facility & Technology */}
+        {/* Section 1: Operations & Technology */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3.5rem', alignItems: 'center', marginBottom: '5rem' }}>
           <div>
-            <span className="badge badge-green" style={{ marginBottom: '0.5rem' }}>Pioneering Facility</span>
+            <span className="badge badge-green" style={{ marginBottom: '0.5rem' }}>Export Operations</span>
             <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem' }}>
               Precision Low-Temperature Dehydration Under 48°C
             </h2>

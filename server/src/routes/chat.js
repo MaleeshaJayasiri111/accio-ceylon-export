@@ -142,6 +142,97 @@ router.get('/history/:roomId', (req, res) => {
   }
 });
 
+// Send a message via REST API
+router.post('/messages', optionalToken, (req, res) => {
+  try {
+    const { room_id, sender_type, sender_id, sender_name, message_text, attachments = [] } = req.body;
+    if (!room_id || !message_text) {
+      return res.status(400).json({ error: 'Room ID and message text are required' });
+    }
+
+    const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    let registeredUser = null;
+    const effectiveSenderId = (req.user ? req.user.id : sender_id) || null;
+    if (effectiveSenderId) {
+      registeredUser = db.prepare('SELECT id, full_name, email, country, company_name, phone FROM users WHERE id = ?').get(effectiveSenderId);
+    }
+
+    const effectiveSenderName = registeredUser ? registeredUser.full_name : (sender_name || (sender_type === 'admin' ? 'Accio Admin' : 'Export Buyer'));
+
+    // Insert message into SQLite
+    db.prepare(`
+      INSERT INTO chat_messages (id, room_id, sender_type, sender_id, sender_name, message_text, attachments, is_read, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
+    `).run(
+      messageId,
+      room_id,
+      sender_type || 'customer',
+      effectiveSenderId,
+      effectiveSenderName,
+      message_text.trim(),
+      JSON.stringify(attachments),
+      createdAt
+    );
+
+    // Update chat room counters
+    if (sender_type === 'admin') {
+      db.prepare(`
+        UPDATE chat_rooms
+        SET last_message = ?, last_message_at = ?, unread_customer_count = unread_customer_count + 1, updated_at = ?
+        WHERE id = ?
+      `).run(message_text.trim(), createdAt, createdAt, room_id);
+    } else {
+      db.prepare(`
+        UPDATE chat_rooms
+        SET last_message = ?, last_message_at = ?, unread_admin_count = unread_admin_count + 1, updated_at = ?
+        WHERE id = ?
+      `).run(message_text.trim(), createdAt, createdAt, room_id);
+    }
+
+    const messagePayload = {
+      id: messageId,
+      room_id,
+      sender_type: sender_type || 'customer',
+      sender_id: effectiveSenderId,
+      sender_name: effectiveSenderName,
+      message_text: message_text.trim(),
+      attachments,
+      is_read: false,
+      created_at: createdAt
+    };
+
+    const io = req.app.get('io');
+    if (io) {
+      const updatedRoom = db.prepare(`
+        SELECT r.*,
+               u.avatar_url, u.email as user_email, u.phone as user_phone,
+               u.country as user_country, u.company_name as user_company_name,
+               u.full_name as user_full_name, u.created_at as user_created_at
+        FROM chat_rooms r
+        LEFT JOIN users u ON r.customer_id = u.id
+        WHERE r.id = ?
+      `).get(room_id);
+
+      io.to(room_id).emit('receive_message', messagePayload);
+      if (sender_type !== 'admin') {
+        io.to('admin_dashboard_channel').emit('admin_new_message', {
+          room: updatedRoom,
+          message: messagePayload,
+          senderUser: registeredUser
+        });
+      }
+      io.to('admin_dashboard_channel').emit('room_updated', updatedRoom);
+    }
+
+    res.status(201).json({ success: true, message: messagePayload });
+  } catch (err) {
+    console.error('Send message REST error:', err);
+    res.status(500).json({ error: 'Failed to send message: ' + err.message });
+  }
+});
+
 // Mark messages as read in room
 router.patch('/rooms/:roomId/read', (req, res) => {
   try {

@@ -43,7 +43,10 @@ export function ChatProvider({ children }) {
     });
 
     socket.on('receive_message', (msg) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
       if (msg.sender_type === 'admin') {
         playNotificationChime();
         if (!isOpen) {
@@ -129,17 +132,91 @@ export function ChatProvider({ children }) {
     }
   }, [isOpen, currentRoom]);
 
-  const sendMessage = (text, attachments = []) => {
-    if (!text.trim() || !currentRoom || !socketRef.current) return;
+  const sendMessage = async (text, attachments = []) => {
+    if (!text.trim()) return;
 
-    socketRef.current.emit('send_message', {
-      roomId: currentRoom.id,
-      senderType: 'customer',
-      senderId: user ? user.id : getGuestId(),
-      senderName: user ? user.full_name : 'Guest Buyer',
-      messageText: text.trim(),
-      attachments
+    let targetRoom = currentRoom;
+    if (!targetRoom) {
+      const guestId = getGuestId();
+      try {
+        const res = await fetch('/api/chat/rooms', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(user ? { Authorization: `Bearer ${localStorage.getItem('accio_customer_token')}` } : {})
+          },
+          body: JSON.stringify({
+            customer_id: user ? user.id : null,
+            guest_session_id: user ? null : guestId,
+            customer_name: user ? user.full_name : 'Guest Buyer',
+            customer_country: user ? user.country : 'International',
+            customer_company: user ? user.company_name : ''
+          })
+        });
+        const data = await res.json();
+        if (data.room) {
+          targetRoom = data.room;
+          setCurrentRoom(data.room);
+        }
+      } catch (e) {}
+    }
+
+    if (!targetRoom) return;
+
+    const senderName = user ? user.full_name : 'Guest Buyer';
+    const senderId = user ? user.id : getGuestId();
+    const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    const localMessage = {
+      id: messageId,
+      room_id: targetRoom.id,
+      sender_type: 'customer',
+      sender_id: senderId,
+      sender_name: senderName,
+      message_text: text.trim(),
+      attachments,
+      is_read: false,
+      created_at: createdAt
+    };
+
+    // Optimistic UI update
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === messageId)) return prev;
+      return [...prev, localMessage];
     });
+
+    if (socketRef.current && isConnected) {
+      socketRef.current.emit('send_message', {
+        roomId: targetRoom.id,
+        senderType: 'customer',
+        senderId: senderId,
+        senderName: senderName,
+        messageText: text.trim(),
+        attachments
+      });
+    } else {
+      // REST fallback
+      try {
+        await fetch('/api/chat/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(user ? { Authorization: `Bearer ${localStorage.getItem('accio_customer_token')}` } : {})
+          },
+          body: JSON.stringify({
+            room_id: targetRoom.id,
+            sender_type: 'customer',
+            sender_id: senderId,
+            sender_name: senderName,
+            message_text: text.trim(),
+            attachments
+          })
+        });
+      } catch (err) {
+        console.error('REST chat send error:', err);
+      }
+    }
 
     handleStopTyping();
   };

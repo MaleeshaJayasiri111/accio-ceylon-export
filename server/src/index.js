@@ -34,6 +34,7 @@ const io = new Server(server, {
 });
 
 initChatSocket(io);
+app.set('io', io);
 
 // Middleware
 app.use(cors({ origin: '*' }));

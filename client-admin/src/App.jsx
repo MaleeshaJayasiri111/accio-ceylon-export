@@ -57,7 +57,7 @@ function AdminAppContent() {
   if (currentTab === 'dashboard') {
     contentComponent = <AdminDashboard setCurrentTab={setCurrentTab} setSelectedOrderId={setSelectedOrderId} />;
   } else if (currentTab === 'chat') {
-    contentComponent = <AdminChatCenter />;
+    contentComponent = <AdminChatCenter setCurrentTab={setCurrentTab} />;
   } else if (currentTab === 'orders') {
     contentComponent = <AdminOrders selectedOrderId={selectedOrderId} onClearSelectedOrder={() => setSelectedOrderId(null)} />;
   } else if (currentTab === 'products') {

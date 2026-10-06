@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, Edit, Trash2, Search, Check, X,
-  Package, Image as ImageIcon, ShieldCheck, AlertCircle, Upload, Loader2
+  Package, Image as ImageIcon, ShieldCheck, AlertCircle, Upload, Loader2, CheckCircle2
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { INITIAL_PRODUCTS } from '../data/initialData';
+import { safeFetch } from '../utils/api';
 
 export default function AdminProducts() {
   const { token } = useAdminAuth();
@@ -13,6 +14,7 @@ export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [successToast, setSuccessToast] = useState('');
 
   // Form state
   const [name, setName] = useState('');
@@ -34,11 +36,8 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products');
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.products && data.products.length > 0) setProducts(data.products);
-      }
+      const data = await safeFetch('/api/products');
+      if (data?.products && data.products.length > 0) setProducts(data.products);
     } catch (err) {
       console.error(err);
     } finally {
@@ -98,13 +97,10 @@ export default function AdminProducts() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const res = await fetch('/api/upload', {
+      const data = await safeFetch('/api/upload', {
         method: 'POST',
         body: formData
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to upload product image');
 
       setImageUrl(data.url);
     } catch (err) {
@@ -118,6 +114,11 @@ export default function AdminProducts() {
   const handleSave = async (e) => {
     e.preventDefault();
     setFormError('');
+
+    if (!name.trim()) {
+      setFormError('Please enter a product name.');
+      return;
+    }
 
     const payload = {
       name: name.trim(),
@@ -135,9 +136,8 @@ export default function AdminProducts() {
     };
 
     try {
-      let res;
       if (editingProduct) {
-        res = await fetch(`/api/products/${editingProduct.id}`, {
+        await safeFetch(`/api/products/${editingProduct.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -145,8 +145,9 @@ export default function AdminProducts() {
           },
           body: JSON.stringify(payload)
         });
+        setSuccessToast(`"${name}" updated successfully!`);
       } else {
-        res = await fetch('/api/products', {
+        await safeFetch('/api/products', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -154,28 +155,29 @@ export default function AdminProducts() {
           },
           body: JSON.stringify(payload)
         });
+        setSuccessToast(`"${name}" created successfully!`);
       }
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save product');
 
       setIsModalOpen(false);
       fetchProducts();
+      setTimeout(() => setSuccessToast(''), 4000);
     } catch (err) {
-      setFormError(err.message);
+      setFormError(err.message || 'Failed to save product. Please check the backend connection.');
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product from the catalog?')) return;
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      await safeFetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) fetchProducts();
+      setSuccessToast('Product deleted successfully.');
+      fetchProducts();
+      setTimeout(() => setSuccessToast(''), 3000);
     } catch (err) {
-      console.error(err);
+      alert(err.message || 'Failed to delete product.');
     }
   };
 
@@ -187,6 +189,14 @@ export default function AdminProducts() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Success Notification Alert */}
+      {successToast && (
+        <div style={{ padding: '0.85rem 1.25rem', borderRadius: 'var(--radius-sm)', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#10B981', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckCircle2 size={18} />
+          <span>{successToast}</span>
+        </div>
+      )}
+
       {/* Header Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
@@ -201,7 +211,7 @@ export default function AdminProducts() {
         </div>
 
         <button className="btn btn-primary" onClick={handleOpenAdd}>
-          <Plus size={16} /> Add Product
+          <Plus size={16} /> Create Product
         </button>
       </div>
 
@@ -305,14 +315,14 @@ export default function AdminProducts() {
               {/* Product Image Attachment Section */}
               <div style={{ padding: '1.25rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.65rem' }}>
-                  Product Image (Attach photo from Laptop / Phone) *
+                  Product Photo (Upload directly from Laptop / Phone file picker) *
                 </label>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
                   <img
                     src={imageUrl || '/products/ceylon_mango.jpg'}
                     alt="Product preview"
-                    style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover', border: '2px solid var(--border-subtle)' }}
+                    style={{ width: '85px', height: '85px', borderRadius: '8px', objectFit: 'cover', border: '2px solid var(--border-subtle)' }}
                     onError={(e) => { e.target.src = '/products/ceylon_mango.jpg'; }}
                   />
 
@@ -330,7 +340,7 @@ export default function AdminProducts() {
                       className="btn btn-primary btn-sm"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingImage}
-                      style={{ alignSelf: 'flex-start', padding: '0.5rem 1rem' }}
+                      style={{ alignSelf: 'flex-start', padding: '0.55rem 1.1rem' }}
                     >
                       {uploadingImage ? (
                         <>
@@ -338,13 +348,13 @@ export default function AdminProducts() {
                         </>
                       ) : (
                         <>
-                          <Upload size={15} /> Choose Photo from Device
+                          <Upload size={15} /> Select Photo from Device
                         </>
                       )}
                     </button>
 
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Supports JPG, PNG, WebP up to 25MB. Click button above to select photo from your files.
+                      Click the button above to pick a photo (JPG, PNG, WebP) directly from your laptop or mobile storage.
                     </span>
                   </div>
                 </div>

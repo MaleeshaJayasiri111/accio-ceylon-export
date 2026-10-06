@@ -33,7 +33,7 @@ export default function Header({ onOpenAuth, theme, toggleTheme, currentPath, na
   const navItems = [
     { label: 'Home', path: '/' },
     { label: 'Products', path: '/products' },
-    { label: 'Port & Export', path: '/port-export' },
+    { label: 'Exports', path: '/port-export' },
     { label: 'Reviews', path: '/reviews' },
     { label: 'About Us', path: '/factory-story' },
     { label: 'Track Order', path: '/track' }

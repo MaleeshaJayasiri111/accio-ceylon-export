@@ -55,14 +55,14 @@ router.post('/login', (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+    const user = db.prepare('SELECT * FROM users WHERE LOWER(email) = ? OR LOWER(full_name) = ?').get(email.trim().toLowerCase(), email.trim().toLowerCase());
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid email/username or password.' });
     }
 
     const isMatch = bcrypt.compareSync(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid email/username or password.' });
     }
 
     const userPayload = {

@@ -5,6 +5,7 @@ import {
   Search, Truck, Sparkles, Anchor, HelpCircle, Camera, Upload
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { safeFetch } from '../utils/api';
 
 export default function AdminSettings() {
   const { adminUser, token, updateAdminUser } = useAdminAuth();
@@ -141,11 +142,10 @@ export default function AdminSettings() {
   const fetchStats = async () => {
     if (!token) return;
     try {
-      const res = await fetch('/api/stats/dashboard', {
+      const data = await safeFetch('/api/stats/dashboard', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await res.json();
-      if (data.metrics) {
+      if (data?.metrics) {
         setDbStats(data.metrics);
       }
     } catch (e) {
@@ -158,7 +158,7 @@ export default function AdminSettings() {
     setProfileSaving(true);
     setProfileMsg({ type: '', text: '' });
     try {
-      const res = await fetch('/api/auth/profile', {
+      const data = await safeFetch('/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -166,14 +166,12 @@ export default function AdminSettings() {
         },
         body: JSON.stringify(profileForm)
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update profile');
-      setProfileMsg({ type: 'success', text: 'Admin profile and credentials updated successfully.' });
+      setProfileMsg({ type: 'success', text: 'Admin profile and login username updated successfully!' });
       if (data.user) {
         updateAdminUser(data.user, data.token);
       }
     } catch (err) {
-      setProfileMsg({ type: 'error', text: err.message });
+      setProfileMsg({ type: 'error', text: err.message || 'Failed to update profile.' });
     } finally {
       setProfileSaving(false);
     }
@@ -181,17 +179,26 @@ export default function AdminSettings() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    setPasswordSaving(true);
     setPasswordMsg({ type: '', text: '' });
 
-    if (passwordForm.new_password !== passwordForm.confirm_password) {
-      setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
-      setPasswordSaving(false);
+    if (!passwordForm.current_password) {
+      setPasswordMsg({ type: 'error', text: 'Please enter your current password.' });
       return;
     }
 
+    if (!passwordForm.new_password || passwordForm.new_password.length < 6) {
+      setPasswordMsg({ type: 'error', text: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      setPasswordMsg({ type: 'error', text: 'New password and Confirm password do not match. Please verify and try again.' });
+      return;
+    }
+
+    setPasswordSaving(true);
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const data = await safeFetch('/api/auth/change-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -202,12 +209,10 @@ export default function AdminSettings() {
           new_password: passwordForm.new_password
         })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update password');
       setPasswordMsg({ type: 'success', text: 'Password changed successfully! Keep your new credentials safe.' });
       setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
     } catch (err) {
-      setPasswordMsg({ type: 'error', text: err.message });
+      setPasswordMsg({ type: 'error', text: err.message || 'Incorrect current password. Please try again.' });
     } finally {
       setPasswordSaving(false);
     }
@@ -218,7 +223,7 @@ export default function AdminSettings() {
     setCompanySaving(true);
     setCompanyMsg({ type: '', text: '' });
     try {
-      const res = await fetch('/api/company', {
+      const data = await safeFetch('/api/company', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -226,11 +231,9 @@ export default function AdminSettings() {
         },
         body: JSON.stringify(companyForm)
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update company settings');
-      setCompanyMsg({ type: 'success', text: 'Company details updated and synchronized with the Public Customer Store!' });
+      setCompanyMsg({ type: 'success', text: 'Company details updated and synchronized with the Public Store!' });
     } catch (err) {
-      setCompanyMsg({ type: 'error', text: err.message });
+      setCompanyMsg({ type: 'error', text: err.message || 'Failed to update company settings.' });
     } finally {
       setCompanySaving(false);
     }
@@ -427,15 +430,19 @@ export default function AdminSettings() {
 
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.35rem' }}>
-                  Admin Email Address
+                  Admin Username / Login Email
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   className="input-control"
                   value={profileForm.email}
                   onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  placeholder="admin@accio-ceylon.com or custom username"
                   required
                 />
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+                  You can change your login username or email anytime and use it with your password to log in.
+                </span>
               </div>
 
               <div>

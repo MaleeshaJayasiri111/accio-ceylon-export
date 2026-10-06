@@ -33,14 +33,22 @@ function initChatSocket(io) {
       try {
         // If customer, check if user exists in SQLite to use verified name and details
         let registeredUser = null;
-        if (senderType === 'customer' && senderId) {
-          registeredUser = db.prepare('SELECT id, full_name, email, country, company_name, phone, avatar_url, created_at FROM users WHERE id = ?').get(senderId);
+        if (senderType === 'customer') {
+          if (senderId) {
+            registeredUser = db.prepare('SELECT id, full_name, email, country, company_name, phone, avatar_url, created_at FROM users WHERE id = ?').get(senderId);
+          }
+          if (!registeredUser) {
+            const roomCustomer = db.prepare('SELECT customer_id FROM chat_rooms WHERE id = ?').get(roomId);
+            if (roomCustomer && roomCustomer.customer_id) {
+              registeredUser = db.prepare('SELECT id, full_name, email, country, company_name, phone, avatar_url, created_at FROM users WHERE id = ?').get(roomCustomer.customer_id);
+            }
+          }
         }
 
         const effectiveSenderName = registeredUser ? registeredUser.full_name : (senderName || (senderType === 'admin' ? 'Accio Admin' : 'Export Buyer'));
 
         // Ensure room exists in SQLite before inserting message
-        const existingRoom = db.prepare('SELECT id FROM chat_rooms WHERE id = ?').get(roomId);
+        const existingRoom = db.prepare('SELECT id, customer_id FROM chat_rooms WHERE id = ?').get(roomId);
         if (!existingRoom) {
           db.prepare(`
             INSERT INTO chat_rooms (

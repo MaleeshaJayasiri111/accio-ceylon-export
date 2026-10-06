@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useAdminChat } from '../context/AdminChatContext';
 
-export default function AdminChatCenter() {
+export default function AdminChatCenter({ setCurrentTab }) {
   const {
     rooms,
     activeRoomId,
@@ -360,6 +360,17 @@ export default function AdminChatCenter() {
                 Direct Colombo Harbor dispatch. Lead time 14-21 days sea freight / 3-5 days air freight.
               </div>
             </div>
+
+            {setCurrentTab && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setCurrentTab('customers')}
+                style={{ width: '100%', marginTop: '0.25rem', padding: '0.55rem' }}
+              >
+                <User size={14} /> View in Registered Buyers Directory
+              </button>
+            )}
           </div>
         ) : (
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No customer selected</p>
